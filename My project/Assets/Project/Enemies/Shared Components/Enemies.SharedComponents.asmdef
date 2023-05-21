@@ -1,0 +1,16 @@
+{
+    "name": "Enemies.SharedComponents",
+    "rootNamespace": "",
+    "references": [
+        "GUID:6993584da1802c34c8bd41e323fb7d8e"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
