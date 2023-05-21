@@ -1,1 +1,1 @@
-# Endless-Legend
+# Endless Legend
