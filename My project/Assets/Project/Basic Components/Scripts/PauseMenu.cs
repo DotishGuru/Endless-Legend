@@ -9,6 +9,7 @@ using UnityEditor;
 public class PauseMenu : MonoBehaviour
 {
     public GameObject pauseMenu;
+    public GameObject levelSelectorMenu;
 
     public void Pause(InputAction.CallbackContext context)
     {
@@ -28,7 +29,54 @@ public class PauseMenu : MonoBehaviour
         else
         {
             pauseMenu.SetActive(false);
+            levelSelectorMenu.SetActive(false);
             GameManager.Instance.UnpauseGame();
         }
+    }
+
+    public void LoadPauseMenu()
+    {
+        if(levelSelectorMenu.activeSelf == true)
+        {
+            levelSelectorMenu.SetActive(false);
+        }
+
+        if(pauseMenu.activeSelf == false)
+        {            
+            pauseMenu.SetActive(true);
+        }
+    }
+
+    public void LoadLevelSelectorMenu()
+    {
+        if(pauseMenu.activeSelf == true)
+        {            
+            pauseMenu.SetActive(false);
+        }
+
+        if(levelSelectorMenu.activeSelf == false)
+        {
+            levelSelectorMenu.SetActive(true);
+        }        
+    }    
+
+    public void LoadMainMenu()
+    {
+        GameManager.Instance.LoadSpecificLevel(GameManager.Levels.MainMenu);
+    }
+
+    public void ExitGame()
+    {
+        GameManager.Instance.ExitGame();
+    }
+
+    public void RestartGame()
+    {        
+        GameManager.Instance.RestartGame();
+    }
+
+    public void RestartLevel()
+    {
+        GameManager.Instance.RestartLevel();
     }
 }

@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BasicEnemyController : MonoBehaviour
@@ -12,6 +10,7 @@ public class BasicEnemyController : MonoBehaviour
     private Vector3 _velocity;
     private Vector3 _previousPosition;
     private bool _flipped = true;
+    private bool _isFacingPatrolingTarget;
     private int _index;
     private Rigidbody2D _rb;
     public RPGEntity.AttackTypes attackType;
@@ -24,48 +23,44 @@ public class BasicEnemyController : MonoBehaviour
     private Vector3 _chasingVelocity;
     private Vector2 _direction;
     private bool _isChasing;
+    private Vector2 chaseTargetPosition;
     
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player");
 
-        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Enemy"), true);
+        Physics2D.IgnoreLayerCollision(player.layer, this.gameObject.layer, true);        
 
         _rb = GetComponent<Rigidbody2D>();
         _target = waypoints[0].position;
-        _target.y = transform.position.y;    
-        if(Healthbar != null)
-        {  
-            Healthbar.SetHealth(RPGEntity.currentHealth, RPGEntity.maxHealth);
-        }
+        _target.y = transform.position.y;            
         _isChasing = false;
+        _isFacingPatrolingTarget = false;
+
+        UpdateEnemyUI();
     }
 
     void FixedUpdate()
     {              
+        deltaTime = Time.fixedDeltaTime;
+
+        PerformAction();
+
+        UpdateEnemyUI();
+    }
+
+    private void PerformAction()
+    {
         if(!RPGEntity.IsDead)
         {
-            deltaTime = Time.fixedDeltaTime;
+            CalculateDistanceToPlayer();
 
-            distance = Vector2.Distance(transform.position, player.transform.position);
-            _direction = player.transform.position - transform.position;
-            _direction.Normalize();
-
-            if(distance <= chasingDistance)
+            if (distance <= chasingDistance)
             {
-                if(RPGEntity.IsInsideAttackRange())
+                if (RPGEntity.IsInsideAttackRange())
                 {
-                    if(RPGEntity.CanAttack())
-                    {
-                        _direction = player.transform.position - transform.position;
-                        _direction.Normalize();
-                        FaceTowards(_direction.x);
-                        RPGEntity.Attack(attackType);
-                    }
-
-                    RPGEntity.animator.SetFloat("speed", 0f);
-                    _isChasing = false;
+                    PerformAttack();                                       
                 }
                 else
                 {
@@ -74,17 +69,28 @@ public class BasicEnemyController : MonoBehaviour
             }
             else
             {
-                if(_isChasing)
+                if (_isChasing)
                 {
                     _direction = _target - transform.position;
                     _direction.Normalize();
                     FaceTowards(_direction.x);
                 }
-                Movement();
-                _isChasing = false;
-            }      
-        }
 
+                Patrol();
+                _isChasing = false;
+            }
+        }
+    }
+
+    private void CalculateDistanceToPlayer()
+    {
+        distance = Vector2.Distance(transform.position, player.transform.position);
+        _direction = player.transform.position - transform.position;
+        _direction.Normalize();
+    }
+
+    private void UpdateEnemyUI()
+    {
         if(Healthbar != null)
         {
             Healthbar.SetHealth(RPGEntity.currentHealth, RPGEntity.maxHealth);
@@ -93,78 +99,107 @@ public class BasicEnemyController : MonoBehaviour
 
     private void ChasePlayer()
     {
-        if(!RPGEntity.IsAttacking && !RPGEntity.IsHurt)
+        if(!RPGEntity.IsAttacking && !RPGEntity.IsStaggered)
         {
             _isChasing = true;
-            Vector2 targetPosition = new Vector2(player.transform.position.x, this.transform.position.y);
+            chaseTargetPosition = new Vector2(player.transform.position.x, this.transform.position.y);
             _chasingVelocity = ((transform.position - _chasingLastPosition) / deltaTime);
             _chasingLastPosition = transform.position;
             RPGEntity.animator.SetFloat("speed", _chasingLastPosition.magnitude);
             FaceTowards(_direction.x);
-            transform.position = Vector2.MoveTowards(this.transform.position, targetPosition, RPGEntity.moveSpeed * deltaTime);
+            transform.position = Vector2.MoveTowards(this.transform.position, chaseTargetPosition, RPGEntity.moveSpeed * deltaTime);
         }
     }
 
-    private void CheckForAttack()
+    private void PerformAttack()
     {
         if(RPGEntity.CanAttack())
-        {
+        {            
+            _isFacingPatrolingTarget = false;
             _direction = player.transform.position - transform.position;
             _direction.Normalize();
             FaceTowards(_direction.x);
             RPGEntity.Attack(attackType);
-        }
+        }   
+
+        RPGEntity.animator.SetFloat("speed", 0f);
+        _isChasing = false;      
     }
 
-    private void Movement()
+    private void Patrol()
     {
         if(!RPGEntity.IsStaggered && !RPGEntity.IsDead && !RPGEntity.IsAttacking)
-        {            
-            _velocity = ((transform.position - _previousPosition) / deltaTime);
-
-            _previousPosition = transform.position;
-
-            RPGEntity.animator.SetFloat("speed", _velocity.magnitude);
-
+        {    
             if(Vector2.Distance(transform.position, _target) > 0.001f)
             {                
-                _target.y = transform.position.y;
-
-                transform.position = Vector2.MoveTowards(transform.position, _target, RPGEntity.moveSpeed * deltaTime);
+                MoveEnemy();
             }
             else
             {
-                if(_target.x == waypoints[0].position.x)
-                {
-                    if(_flipped)
-                    {
-                        _flipped = !_flipped;
-                        StartCoroutine("SetTarget", waypoints[1].position);
-                    }
-                }
-                else
-                {
-                    if(!_flipped)
-                    {
-                        _flipped = !_flipped;
-                        StartCoroutine("SetTarget", waypoints[0].position);
-                    }
-                }
+                SetPatrolingDestinationPoint();
             } 
         }
         else
         {
-            transform.position = Vector2.MoveTowards(transform.position, _previousPosition, 0);
-            RPGEntity.animator.SetFloat("speed", _velocity.magnitude);
+            StopMovement();
+        }        
+    }
+
+    private void MoveEnemy()
+    {
+        _velocity = ((transform.position - _previousPosition) / deltaTime);
+
+        RPGEntity.animator.SetFloat("speed", _velocity.magnitude);
+
+        _target.y = transform.position.y;
+
+        if(!_isFacingPatrolingTarget)
+        {
+            FaceTowards(_target - transform.position);
+        }
+
+        transform.position = Vector2.MoveTowards(transform.position, _target, RPGEntity.moveSpeed * deltaTime);
+    }
+
+    private void StopMovement()
+    {
+        transform.position = Vector2.MoveTowards(transform.position, transform.position, 0);
+        _velocity = Vector3.zero;
+        RPGEntity.animator.SetFloat("speed", 0f);
+    }
+
+    private void SetPatrolingDestinationPoint()
+    {
+        StopMovement();
+
+        if(_target.x == waypoints[0].position.x)
+        {
+            if(_flipped)
+            {
+                _flipped = !_flipped;
+                StartCoroutine("SetTarget", waypoints[1].position);
+            }
+        }
+        else
+        {
+            if(!_flipped)
+            {
+                _flipped = !_flipped;
+                StartCoroutine("SetTarget", waypoints[0].position);
+            }
         }        
     }
 
     public IEnumerator SetTarget(Vector3 position)
     {
+        StopMovement();
+
         yield return new WaitForSeconds(5f);
+
         _target = position;
         _target.y = transform.position.y;
         FaceTowards(position - transform.position);
+        _isFacingPatrolingTarget = true;
     }
 
     public void FaceTowards(Vector3 direction)

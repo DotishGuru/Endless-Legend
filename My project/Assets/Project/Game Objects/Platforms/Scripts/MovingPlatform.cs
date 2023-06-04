@@ -15,8 +15,8 @@ public class MovingPlatform : MonoBehaviour
         transform.position = points[startingPoint].position;
     }
 
-    private void FixedUpdate() {
-        //deltaTime = Time.fixedDeltaTime * Time.timeScale;
+    private void FixedUpdate() 
+    {
         deltaTime = Time.fixedDeltaTime;
         MovePlatform();
     }

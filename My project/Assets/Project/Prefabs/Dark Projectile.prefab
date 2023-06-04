@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8326789034413690673}
   - component: {fileID: 846367693}
   - component: {fileID: 846367692}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Dark Projectile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 3
-  projectileDamage: 5
-  damageLayer:
-    serializedVersion: 2
-    m_Bits: 512
+  projectileDamage: 15

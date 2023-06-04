@@ -9,6 +9,11 @@ public class Projectile : MonoBehaviour
     float deltaTime;
     private RPGEntity targetRPGEntity;
 
+    private void Start() 
+    {
+        Destroy(this.gameObject, 3f);    
+    }
+
     private void FixedUpdate()
     {
         deltaTime = Time.fixedDeltaTime;
@@ -29,5 +34,9 @@ public class Projectile : MonoBehaviour
         }
 
         Destroy(this.gameObject);    
+    }
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        Destroy(this.gameObject);
     }
 }

@@ -49,6 +49,7 @@ GameObject:
   - component: {fileID: 1975058651}
   - component: {fileID: 3527261760579579872}
   - component: {fileID: 161119357856866351}
+  - component: {fileID: 3527261760579579882}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -285,6 +286,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 31d8eca8-c076-4fdb-ad2a-9e6f681c995e
     m_ActionName: UI/Pause[/Keyboard/escape]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3527261760391863462}
+        m_TargetAssemblyTypeName: PlayerController, Player
+        m_MethodName: Exit
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 9924bf4d-100b-4603-b9d7-5732df937458
+    m_ActionName: Player/ExitGame[/Keyboard/end]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -307,14 +324,14 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 0
   strength: 10
-  defense: 2
+  defense: 5
   magic: 5
   magicDefense: 5
   level: 1
   currentExperience: 0
   levelUpExperienceThreshold: 100
-  moveSpeed: 3
-  staggerCooldown: 3
+  moveSpeed: 4.5
+  staggerCooldown: 10
   attackPoint: {fileID: 1533355977}
   attackRange: 0.45
   rangedProjectile: {fileID: 0}
@@ -322,7 +339,7 @@ MonoBehaviour:
   enemyLayers:
     serializedVersion: 2
     m_Bits: 256
-  attackRate: 2
+  attackRate: 1
 --- !u!114 &3527261760579579872
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -352,6 +369,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0b9ce8c42c817af4fb6309ec290e3fc7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3527261760579579882
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3527261760391863471}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a8a861c6a85e9348b123843f0d25ff3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &8021002823831461400

@@ -4,14 +4,23 @@ using UnityEngine;
 
 public class RPGEntity : MonoBehaviour
 {
-    bool _isDead;
-    bool _isHurt;
-    bool _isStaggered;
-    bool _isAttacking;
-    float _nextStaggerTime;
-    float _nextAttackTime;
+    #region Private variables        
+    
+    private bool _isDead;
+    private bool _isStaggered;
+    private bool _isAttacking;
+    private float _nextStaggerTime;
+    private float _nextAttackTime;
+
+    #endregion
+
+    #region Public variables  
+    
+    [Header ("Objects' references")]
     public Animator animator;
     public BarsUIBehaviour BarsUIBehaviour; 
+
+    [Header ("Stats")]
     public int maxHealth;
     public int currentHealth;
     public int strength;
@@ -23,27 +32,35 @@ public class RPGEntity : MonoBehaviour
     public int levelUpExperienceThreshold;
     public float moveSpeed;
     public float staggerCooldown = 3f;
+
+    [Header ("Attack mechanic")]
     public Transform attackPoint;
     public float attackRange = 0.5f;
     public GameObject rangedProjectile;
     public Transform projectileSpawnPoint;
     public LayerMask enemyLayers;
-    public float attackRate = 2f;  
+    public float attackRate; 
+
+    #endregion
+
+    #region Properties        
+    
     public bool IsDead { get {return _isDead;}}
-    public bool IsHurt {get {return _isHurt;}}
     public bool IsStaggered {get {return _isStaggered;}}
     public bool IsAttacking {get {return _isAttacking;}}
+
+    #endregion
 
     // Start is called before the first frame update
     void Start()
     {
-        currentHealth = maxHealth;
-        _isDead = false;
-        _isHurt = false;
-        _isStaggered = false;
-        _isAttacking = false;
-        _nextStaggerTime = 0.0f;
-        _nextAttackTime = 0.0f;
+        currentHealth       = maxHealth;
+        _isDead             = false;
+        _isStaggered        = false;
+        _isAttacking        = false;
+        _nextStaggerTime    = 0.0f;
+        _nextAttackTime     = 0.0f;
+
         if(BarsUIBehaviour != null)
         {
             InitUIBars();
@@ -60,7 +77,7 @@ public class RPGEntity : MonoBehaviour
     {
         if(CanAttack() && IsInsideAttackRange())
         {            
-            _nextAttackTime = Time.time + 1f / attackRate;
+            _nextAttackTime = Time.time + attackRate / 1f;
 
             Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
@@ -75,7 +92,7 @@ public class RPGEntity : MonoBehaviour
     {
         if(CanAttack() && IsInsideAttackRange())
         {            
-            _nextAttackTime = Time.time + 1f / attackRate;
+            _nextAttackTime = Time.time + attackRate / 1f;
 
             Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
 
@@ -134,7 +151,7 @@ public class RPGEntity : MonoBehaviour
 
     public bool CanAttack()
     {     
-        return (Time.time >= _nextAttackTime) && !_isAttacking;
+        return (Time.time >= _nextAttackTime) && !_isAttacking && !_isStaggered && !_isDead;
     }
 
     public bool CanBeStaggered()
@@ -147,6 +164,16 @@ public class RPGEntity : MonoBehaviour
         _isAttacking = !_isAttacking;
     }
 
+    public void AttackStartEvent()
+    {
+        _isAttacking = true;
+    }
+
+    public void AttackEndEvent()
+    {
+        _isAttacking = false;
+    }
+
     public void ModifyIsStaggered()
     {
         _isStaggered = !_isStaggered;
@@ -154,30 +181,32 @@ public class RPGEntity : MonoBehaviour
 
     public virtual void TakeDamage(int damage, RPGEntity initiator = null)
     {
-        currentHealth -= (damage - defense);
-        if(currentHealth <= 0 && !_isDead)
+        if(!_isDead)
         {
-            currentHealth = 0;        
-            Debug.Log(initiator.gameObject.tag.ToString());    
-            if(initiator != null && initiator.gameObject.tag == "Player")
+            currentHealth -= (damage - defense);
+            if(currentHealth <= 0 && !_isDead)
             {
-                initiator.GainExperience(10);
+                currentHealth = 0;        
+                Debug.Log(initiator.gameObject.tag.ToString());    
+                if(initiator != null && initiator.gameObject.tag == "Player")
+                {
+                    initiator.GainExperience(10);
+                }
+                StartCoroutine("Death");
             }
-            StartCoroutine("Death");
-        }
-        else
-        {
-            if(CanBeStaggered())
+            else
             {
-                _nextStaggerTime = Time.time + 1f / staggerCooldown;
-                _isAttacking = false;
-                StartCoroutine("Stagger");
+                if(CanBeStaggered())
+                {
+                    _nextStaggerTime = Time.time + staggerCooldown / 1f;
+                    StartCoroutine("Stagger");
+                }
             }
-        }
 
-        if(BarsUIBehaviour != null)
-        {
-            BarsUIBehaviour.SetHealth(currentHealth, maxHealth);
+            if(BarsUIBehaviour != null)
+            {
+                BarsUIBehaviour.SetHealth(currentHealth, maxHealth);
+            }
         }
     }
 
@@ -217,10 +246,19 @@ public class RPGEntity : MonoBehaviour
 
     public IEnumerator Stagger()
     {
-        _isStaggered = true;
+        _isAttacking = false;
         animator.SetTrigger("Stagger");
         yield return new WaitForSeconds(1f);
         animator.ResetTrigger("Stagger");
+    }
+
+    public void StaggerStartEvent()
+    {
+        _isStaggered = true;
+    }    
+
+    public void StaggerEndEvent()
+    {
         _isStaggered = false;
     }
 
@@ -232,12 +270,12 @@ public class RPGEntity : MonoBehaviour
         if(this.gameObject.tag == "Enemy")
         {
             Destroy(this.gameObject.transform.parent.gameObject);
-        }
-        else
+        }        
+        else if(this.gameObject.tag == "Player")
         {
-            Destroy(this.gameObject);
-            GameManager.Instance.RestartLevel();
+            GameManager.Instance.GameOver();
         }
+        
     }
 
     public enum AttackTypes

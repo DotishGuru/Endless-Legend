@@ -205,7 +205,7 @@ MonoBehaviour:
   BarsUIBehaviour: {fileID: 0}
   maxHealth: 100
   currentHealth: 0
-  strength: 5
+  strength: 10
   defense: 2
   magic: 0
   magicDefense: 0
@@ -213,7 +213,7 @@ MonoBehaviour:
   currentExperience: 0
   levelUpExperienceThreshold: 0
   moveSpeed: 1.25
-  staggerCooldown: 2
+  staggerCooldown: 5
   attackPoint: {fileID: 9098735974452119080}
   attackRange: 6
   rangedProjectile: {fileID: 7225062604840377875, guid: bbe3ca3e9bb37f34aa3f4c8990b40de3, type: 3}
@@ -221,7 +221,7 @@ MonoBehaviour:
   enemyLayers:
     serializedVersion: 2
     m_Bits: 512
-  attackRate: 0.5
+  attackRate: 3
 --- !u!114 &9098735974254837556
 MonoBehaviour:
   m_ObjectHideFlags: 0
